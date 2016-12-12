@@ -1,0 +1,53 @@
+---
+# tasks file for tomcat
+- name: Add repo jor java 8
+  apt_repository: repo='ppa:webupd8team/java' state=present
+
+- name: set license selected
+  shell: /bin/echo debconf shared/accepted-orcale-license-v1-1 select true | /usr/bin/debconf-set-selections
+
+- name: set license seen
+  shell: /bin/echo debconf shared/accepted-orcale-license-v1-1 seen true | /usr/bin/debconf-set-selections
+
+- name: install java 8
+  apt: name=oracle-java8-installer state=present update_cache=yes force=yes
+ 
+- name: install apache2 and git
+  apt: name={{ item }} update_cache=yes state=present
+  with_items:
+       - apache2
+      
+- name: Download Tomcat 7
+  get_url: url=http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.42/bin/apache-tomcat-7.0.42.tar.gz dest=/home/ubuntu/apache-tomcat-7.0.42.tar.gz
+
+- name: Extract Tomcat
+  command: chdir=/home/ubuntu tar -xzvf apache-tomcat-7.0.42.tar.gz creates=/home/ubuntu/tomcat/apache-tomcat-7.0.42
+
+- name: add group "tomcat"
+  group: name=tomcat
+
+- name: add user "tomcat"
+  user: name=tomcat group=tomcat 
+  become: yes
+  become_method: sudo
+  
+- name: Change ownership of tomcat installation
+  file: path=/home/ubuntu/tomcat/apache-tomcat-7.0.42 owner=tomcat group=tomcat state=directory recurse=yes
+
+- name: configure tomcat server
+  template: src=tomcat-users.xml dest=/home/ubuntu/tomcat/apache-tomcat-7.0.42/conf
+  notify: restart tomcat
+  ignore_errors: yes
+
+#- name: set JAVA_HOME for tomcat
+#  lineinfile: dest=/opt/tomcat/apache-tomcat-7.0.42/bin/setenv.sh line='export JAVA_HOME=/opt/java/jdk1.7.0_51' create=yes state=present mode=0555
+
+- name: start tomcat
+  command: /home/ubuntu/tomcat/tomcat-7.0.42/bin/startup.sh
+  become: yes
+  become_method: sudo
+  become_user: tomcat
+
+- name: wait for tomcat to start
+  wait_for: port=8080
+

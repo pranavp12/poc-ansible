@@ -1,0 +1,9 @@
+---
+# vars file for tomcat
+http_port: 80
+https:port: 443
+
+domain: example.com
+admin_username: admin
+admin_password: tomcat
+

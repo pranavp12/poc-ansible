@@ -1,0 +1,4 @@
+---
+# vars file for mysql
+mysql_version: "5.6.21"
+mysql_root_pass: root123
