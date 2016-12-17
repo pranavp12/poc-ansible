@@ -1,7 +1,12 @@
 ---
 # tasks file for tomcat
 - name: Add repo jor java 8
-  apt_repository: repo='ppa:webupd8team/java' state=present
+  apt_repository: repo='ppa:webupd8team/java' update_cache=yes
+
+- name: Force install java 
+  shell: apt-get -f install
+  become: yes
+  become_method: sudo   
 
 - name: set license selected
   shell: /bin/echo debconf shared/accepted-orcale-license-v1-1 select true | /usr/bin/debconf-set-selections
@@ -10,10 +15,10 @@
   shell: /bin/echo debconf shared/accepted-orcale-license-v1-1 seen true | /usr/bin/debconf-set-selections
 
 - name: install java 8
-  apt: name=oracle-java8-installer state=present force=yes update_cache=yes
+  apt: name=oracle-java8-set-default force=yes state=present update_cache=yes
  
 - name: install apache2 
-  apt: name={{ item }} update_cache=yes state=present
+  apt: name={{ item }} update_cache=yes 
   with_items:
        - apache2
       
@@ -32,12 +37,11 @@
   become_method: sudo
   
 - name: Change ownership of tomcat installation
-  file: path=/home/ubuntu/tomcat/apache-tomcat-7.0.42 owner=tomcat group=tomcat state=directory recurse=yes
+  file: path="/home/ubuntu/apache-tomcat-7.0.42/" owner=tomcat group=tomcat state=directory recurse=yes mode=0755
 
 - name: configure tomcat server
-  template: src=tomcat-users.xml dest=/home/ubuntu/tomcat/apache-tomcat-7.0.42/conf/
+  template: src=tomcat-users.xml dest=/home/ubuntu/apache-tomcat-7.0.42/conf/
   notify: restart tomcat
-  ignore_errors: yes
 
 
 - name: start tomcat
