@@ -1,4 +1,4 @@
-[all]
+#[all]
 #<Enter the ip>
 # This is the default ansible 'hosts' file.
 #
@@ -9,7 +9,9 @@
 #   - Groups of hosts are delimited by [header] elements
 #   - You can enter hostnames or ip addresses
 #   - A hostname/ip can be a member of multiple groups
-localhost ansible_connection=local
+#olocalhost ansible_connection=local
+[target]
+23.20.223.12
 
 # Ex 1: Ungrouped hosts, specify before any group headers.
 

@@ -1,6 +1,5 @@
 ---
-- name: Install mysql, httpd, tomcat7 and test application
-  hosts: all
+- hosts: "{{hosts}}"
   remote_user: ubuntu
   become: yes
   become_method: sudo
@@ -8,4 +7,3 @@
   roles:
     - mysql
     - tomcat
-   # - application

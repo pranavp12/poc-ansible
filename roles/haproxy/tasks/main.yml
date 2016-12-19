@@ -1,0 +1,11 @@
+#HAProxy installation and configuration
+
+- name: Download and install HAProxy
+  apt: name=haproxy state=present
+
+- name: Configure haproxy cnf file with hosts
+  template: src=haproxy.cfg dest=/etc/haproxy/haproxy.cfg
+  notify: restart haproxy
+
+- name: start the haproxy service
+  service: name=haproxy state=started enabled=yes

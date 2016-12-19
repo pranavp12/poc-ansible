@@ -4,6 +4,6 @@ Assumptions:
 
 
 Implementation:
-Execute command: ansible-playbook -i ip_address, testapp.yml
+Execute command: ansible-playbook testapp.yml --extra-vars "target=<ip-address>"
 
 
