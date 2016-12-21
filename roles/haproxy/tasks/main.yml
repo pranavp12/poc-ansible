@@ -1,7 +1,7 @@
 #HAProxy installation and configuration
 
 - name: Download and install HAProxy
-  apt: name=haproxy state=present
+  apt: name=haproxy state=present update_cache=yes
 
 - name: Configure haproxy cnf file with hosts
   template: src=haproxy.cfg dest=/etc/haproxy/haproxy.cfg

@@ -1,10 +1,17 @@
 ---
-- name: Install tomcat7 and tomcat7-admin
-  apt: name={{ item }} state=latest update_cache=yes
-  with_items:
-       - tomcat7
-       - tomcat7-admin
- 
+# tasks file for tomcat
+- name: Add repo jor java 8
+  apt_repository: repo='ppa:webupd8team/java' update_cache=yes
+
+- name: set license selected
+  shell: /bin/echo debconf shared/accepted-orcale-license-v1-1 select true | /usr/bin/debconf-set-selections
+
+- name: set license seen
+  shell: /bin/echo debconf shared/accepted-orcale-license-v1-1 seen true | /usr/bin/debconf-set-selections
+
+- name: install java 8
+  apt: name=oracle-java8-set-default force=yes state=present update_cache=yes 
+
 - name: install apache2 
   apt: name={{ item }} update_cache=yes
   with_items:
@@ -30,15 +37,28 @@
   notify:
      - restart apache2
 
-- name: Add group tomcat
+   
+#- name: Download Tomcat 7
+#  get_url: url=http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.42/bin/apache-tomcat-7.0.42.tar.gz dest=/home/ubuntu/apache-tomcat-7.0.42.tar.gz
+
+#- name: Extract Tomcat
+#  command: chdir=/home/ubuntu tar -xzvf apache-tomcat-7.0.42.tar.gz creates=/home/ubuntu/tomcat/apache-tomcat-7.0.42
+
+- name: Install tomcat7 and tomcat7-admin
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+       - tomcat7
+       - tomcat7-admin
+ 
+- name: add group "tomcat"
   group: name=tomcat
 
-- name: add user tomcat
-  user: name=tomcat group=tomcat
+- name: add user "tomcat"
+  user: name=tomcat group=tomcat 
   become: yes
   become_method: sudo
-
-- name: Create conf and logs folers
+  
+- name: Change ownership of tomcat installation
   file: path="/usr/share/tomcat7/{{ item }}/" owner=tomcat group=tomcat state=directory recurse=yes mode=0755
   with_items:
      - conf
@@ -53,25 +73,28 @@
   template: src=tomcat-users.xml dest=/usr/share/tomcat7/conf/
   notify: restart tomcat
 
-- name: change ownership of tomcat folder
-  file: path="/usr/share/tomcat7/" owner=tomcat group=tomcat state=directory recurse=yes mode=0755
+- name: Download MySQL JDBC driver
+  apt: name=libmysql-java update_cache=true
+  become: yes
+  become_method: sudo
+
+- name: Enable MySQL JDBC driver
+  file: path=/usr/share/tomcat7/lib/mysql-connector-java.jar src=/usr/share/java/mysql-connector-java.jar state=link
+  notify: restart tomcat
+
+- name: Export JAVA_HOME in startup.sh
+  lineinfile: dest=/etc/default/tomcat7 line="export JAVA_HOME=/usr/lib/jvm/java-8-oracle" insertafter=EOF
   become: yes
   become_method: sudo
 
 - name: create second instance
-  command: cp -rpf /usr/share/tomcat7/{{ item }}/ /usr/share/tomcat7-instance2
+  command: cp -r /usr/share/tomcat7/{{ item }}/ /usr/share/tomcat7-instance2
   with_items:
+     - "logs"
+     - "webapps"
      - "bin"
      - "conf"
      - "lib" 
-
-
-- name: Create conf and logs folers
-  file: path="/usr/share/tomcat7-insatance2/{{ item }}/" owner=tomcat group=tomcat state=directory recurse=yes mode=0777
-  with_items:
-     - logs
-  become: yes
-  become_method: sudo
 
 - name: Update CATALINA_BASE for second instance in catalina.sh
   lineinfile: 
@@ -93,21 +116,23 @@
   template: src=server2.xml dest=/usr/share/tomcat7-instance2/conf/server.xml
   notify: restart tomcat
 
+- name: Enable MySQL JDBC driver
+  file: path=/usr/share/tomcat7-instance2/lib/mysql-connector-java.jar src=/usr/share/java/mysql-connector-java.jar state=link
+  notify: restart tomcat
+
 - name: change ownership of second instance
-  file: path="/usr/share/tomcat7-instance2/" owner=tomcat group=tomcat state=directory recurse=yes mode=0777
+  file: path="/usr/share/tomcat7-instance2/" owner=tomcat group=tomcat state=directory recurse=yes mode=0755
+  become: yes
+  become_method: sudo
 
 - name: Start application 1 on port 8080
   command: /usr/share/tomcat7/bin/startup.sh
-  become: yes
-  become_method: sudo
 
-#- name: wait for tomcat instance to start
-#  wait_for: port=8080
+- name: wait for tomcat instance to start
+  wait_for: port=8080
 
 - name: Start application on port 8181
   command: /usr/share/tomcat7-instance2/bin/startup.sh
-  become: yes
-  become_method: sudo
 
-#- name: wait for instance 2 to start
-#  wait_for: port=8181
+- name: wait for instance 2 to start
+  wait_for: port=8181

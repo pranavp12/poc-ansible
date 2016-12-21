@@ -10,8 +10,8 @@
 #   - You can enter hostnames or ip addresses
 #   - A hostname/ip can be a member of multiple groups
 #olocalhost ansible_connection=local
-[target]
-23.20.223.12
+[hosts]
+54.196.74.168
 
 # Ex 1: Ungrouped hosts, specify before any group headers.
 

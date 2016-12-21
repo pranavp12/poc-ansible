@@ -1,7 +1,11 @@
 ---
 # handlers file for tomcat
 - name: restart tomcat
-  service: name=tomcat state=restarted 
+  service: name=tomcat7 state=restarted enabled=yes
+  become: yes
+  become_method: sudo
 
 - name: restart apache2
-  service: name=apache2 state=restarted 
+  service: name=apache2 state=restarted enabled=yes
+  become: yes
+  become_method: sudo

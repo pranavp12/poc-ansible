@@ -7,6 +7,12 @@ domain: example.com
 admin_username: admin
 admin_password: tomcat
 
+shutdown_port: 8005
+connector_port: 8080
+redirect_port: 8443
+ajp_port: 8109
+ajp_redirect_port: 8113
+
 shutdown_port_instance2: 8006
 connector_port_instance2: 8181
 redirect_port_instance2: 8019
